@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="TUIdemo">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/TUIdemo/dist/TUIdemo.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
