@@ -1,18 +1,23 @@
 package com.mybank.tui;
 
+import com.mybank.data.DataSource;
 import com.mybank.domain.Bank;
 import com.mybank.domain.CheckingAccount;
 import com.mybank.domain.Customer;
-import com.mybank.domain.SavingsAccount;
 import com.mybank.reporting.CustomerReport;
+import org.fusesource.jansi.AnsiConsole;
+import org.jline.reader.*;
+import org.jline.reader.impl.completer.ArgumentCompleter;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jline.reader.*;
-import org.jline.reader.impl.completer.*;
-import org.jline.utils.*;
-import org.fusesource.jansi.*;
+
 
 /**
  * Sample application to show how jLine can be used.
@@ -25,6 +30,7 @@ import org.fusesource.jansi.*;
  *
  * @author Alexander 'Taurus' Babich
  */
+
 public class CLIdemo {
 
     public static final String ANSI_RESET = "\u001B[0m";
@@ -43,7 +49,7 @@ public class CLIdemo {
         commandsList = new String[]{"help", "customers", "customer",  "report", "exit"};
     }
 
-    public void run() {
+    public void run() throws IOException {
         AnsiConsole.systemInstall(); // needed to support ansi on Windows cmd
         printWelcomeMessage();
         LineReaderBuilder readerBuilder = LineReaderBuilder.builder();
@@ -57,9 +63,15 @@ public class CLIdemo {
         String line;
         PrintWriter out = new PrintWriter(System.out);
 
+        DataSource dataSource = new DataSource("C:\\Users\\Admin\\OneDrive\\Документы\\GitHub\\tui-lab2-35-Ewenwood\\TUIdemo\\src\\com\\mybank\\data\\test.dat");
+        dataSource.loadData();
+
         while ((line = readLine(reader, "")) != null) {
+
             if ("help".equals(line)) {
+
                 printHelp();
+
             } else if ("customers".equals(line)) {
                 AttributedStringBuilder a = new AttributedStringBuilder()
                         .append("\nThis is all of your ")
@@ -79,38 +91,48 @@ public class CLIdemo {
 
             } else if (line.indexOf("customer") != -1) {
                 try {
+
                     int custNo = 0;
                     if (line.length() > 8) {
                         String strNum = line.split(" ")[1];
                         if (strNum != null) {
                             custNo = Integer.parseInt(strNum);
                         }
-                    }                    
+                    }
                     Customer cust = Bank.getCustomer(custNo);
                     String accType = cust.getAccount(0) instanceof CheckingAccount ? "Checkinh" : "Savings";
-                    
+
                     AttributedStringBuilder a = new AttributedStringBuilder()
                             .append("\nThis is detailed information about customer #")
                             .append(Integer.toString(custNo), AttributedStyle.BOLD.foreground(AttributedStyle.RED))
                             .append("!");
 
                     System.out.println(a.toAnsi());
-                    
+
                     System.out.println("\nLast name\tFirst Name\tAccount Type\tBalance");
                     System.out.println("-------------------------------------------------------");
-                    System.out.println(cust.getLastName() + "\t\t" + cust.getFirstName() + "\t\t" + accType + "\t$" + cust.getAccount(0).getBalance());
+                    System.out.println(cust.getLastName() + "\t\t" + cust.getFirstName() + "\t\t" + accType + "\t\t$" + cust.getAccount(0).getBalance());
+
                 } catch (Exception e) {
+
                     System.out
-                        .println(ANSI_RED + "ERROR! Wrong customer number!" + ANSI_RESET);
+                            .println(ANSI_RED + "ERROR! Wrong customer number!" + ANSI_RESET);
+
                 }
             }else if("report".equals(line)) {
-                (new CustomerReport()).generateReport(); 
+
+                (new CustomerReport()).generateReport();
+
             }else if ("exit".equals(line)) {
+
                 System.out.println("Exiting application");
                 return;
+
             } else {
+
                 System.out
                         .println(ANSI_RED + "Invalid command, For assistance press TAB or type \"help\" then hit ENTER." + ANSI_RESET);
+
             }
         }
 
@@ -145,12 +167,7 @@ public class CLIdemo {
         }
     }
 
-    public static void main(String[] args) {
-
-        Bank.addCustomer("John", "Doe");
-        Bank.addCustomer("Fox", "Mulder");
-        Bank.getCustomer(0).addAccount(new CheckingAccount(2000));
-        Bank.getCustomer(1).addAccount(new SavingsAccount(1000, 3));
+    public static void main(String[] args) throws IOException {
 
         CLIdemo shell = new CLIdemo();
         shell.init();
